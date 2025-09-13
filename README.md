@@ -68,3 +68,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+\n+## Local run tips
+\n+- Port conflict: If something is running on port 3000, use `npm run start:3001`.
+- Host binding: The provided `.env` binds `HOST=0.0.0.0` and `PORT=3001` by default.
+- Backend URLs: Defaults are `http://localhost:8080` (REST) and `ws://localhost:8080/ws` (WebSocket). Override with `REACT_APP_API_URL` and `REACT_APP_WS_URL`.
