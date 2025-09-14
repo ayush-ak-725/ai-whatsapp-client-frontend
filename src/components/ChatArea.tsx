@@ -85,7 +85,7 @@ const ChatArea: React.FC = () => {
   const isConversationActive = conversationStatus.isActive && conversationStatus.groupId === activeGroup.id;
 
   return (
-    <div className="chat-area">
+    <div className="chat-area flex flex-col h-full overflow-hidden">
       <ChatHeader group={activeGroup} isConversationActive={isConversationActive} />
       
       <div className="flex-1 overflow-hidden flex flex-col">

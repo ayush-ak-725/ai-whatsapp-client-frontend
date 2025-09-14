@@ -7,7 +7,8 @@ import {
   StopIcon,
   UserGroupIcon,
   TrashIcon,
-  PencilIcon
+  PencilIcon,
+  UserPlusIcon
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -20,6 +21,7 @@ interface GroupListProps {
 const GroupList: React.FC<GroupListProps> = ({ showManagement = false }) => {
   const { 
     groups, 
+    characters,
     activeGroup, 
     setActiveGroup, 
     conversationStatus,
@@ -27,13 +29,16 @@ const GroupList: React.FC<GroupListProps> = ({ showManagement = false }) => {
     startConversation,
     stopConversation,
     deleteGroup,
-    loadGroups
+    loadGroups,
+    addCharacterToGroup
   } = useStore();
 
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [showCharacterModal, setShowCharacterModal] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +87,24 @@ const GroupList: React.FC<GroupListProps> = ({ showManagement = false }) => {
     }
   };
 
+  const handleAddCharacterToGroup = (groupId: string) => {
+    setSelectedGroupId(groupId);
+    setShowCharacterModal(true);
+  };
+
+  const handleSelectCharacter = async (characterId: string) => {
+    if (!selectedGroupId) return;
+    
+    try {
+      await addCharacterToGroup(selectedGroupId, characterId);
+      toast.success('Character added to group');
+      setShowCharacterModal(false);
+      setSelectedGroupId(null);
+    } catch (error) {
+      toast.error('Failed to add character to group');
+    }
+  };
+
   const isConversationActive = (groupId: string) => {
     return conversationStatus.isActive && conversationStatus.groupId === groupId;
   };
@@ -89,7 +112,7 @@ const GroupList: React.FC<GroupListProps> = ({ showManagement = false }) => {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-chat-border">
+      <div className="p-4 border-b border-chat-border flex-shrink-0">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-chat-text">
             {showManagement ? 'Manage Groups' : 'Groups'}
@@ -157,7 +180,7 @@ const GroupList: React.FC<GroupListProps> = ({ showManagement = false }) => {
             )}
           </div>
         ) : (
-          <div className="p-2 space-y-1">
+          <div className="p-4 space-y-2">
             {groups.map((group) => (
               <div
                 key={group.id}
@@ -206,6 +229,17 @@ const GroupList: React.FC<GroupListProps> = ({ showManagement = false }) => {
 
                   {showManagement && (
                     <div className="flex items-center space-x-1 ml-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddCharacterToGroup(group.id);
+                        }}
+                        className="p-1 text-whatsapp-400 hover:bg-whatsapp-400/10 rounded transition-colors duration-200"
+                        title="Add character to group"
+                      >
+                        <UserPlusIcon className="w-4 h-4" />
+                      </button>
+
                       {isConversationActive(group.id) ? (
                         <button
                           onClick={(e) => {
@@ -259,6 +293,69 @@ const GroupList: React.FC<GroupListProps> = ({ showManagement = false }) => {
           </div>
         )}
       </div>
+
+      {/* Character Selection Modal */}
+      {showCharacterModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-chat-sidebar border border-chat-border rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-chat-text">Add Character to Group</h3>
+              <button
+                onClick={() => {
+                  setShowCharacterModal(false);
+                  setSelectedGroupId(null);
+                }}
+                className="text-chat-textSecondary hover:text-chat-text"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto scrollbar-thin">
+              {characters.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-chat-textSecondary mb-4">No characters available</p>
+                  <p className="text-sm text-chat-textSecondary">Create some characters first</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {characters.map((character) => (
+                    <div
+                      key={character.id}
+                      onClick={() => handleSelectCharacter(character.id)}
+                      className="p-3 bg-chat-message hover:bg-chat-border rounded-lg cursor-pointer transition-colors duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="character-avatar">
+                          {character.avatarUrl ? (
+                            <img
+                              src={character.avatarUrl}
+                              alt={character.name}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            character.name.charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-chat-text truncate">
+                            {character.name}
+                          </h4>
+                          {character.personalityTraits && (
+                            <p className="text-sm text-chat-textSecondary truncate">
+                              {character.personalityTraits}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

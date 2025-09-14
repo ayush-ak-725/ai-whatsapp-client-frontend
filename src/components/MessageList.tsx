@@ -25,7 +25,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 min-h-full">
       {messages.map((message, index) => (
         <MessageBubble
           key={message.id}

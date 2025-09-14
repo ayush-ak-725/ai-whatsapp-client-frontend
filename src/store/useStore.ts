@@ -43,7 +43,10 @@ interface AppState {
   loadCharacters: () => Promise<void>;
   loadMessages: (groupId: string) => Promise<void>;
   createGroup: (name: string, description?: string) => Promise<Group>;
+  deleteGroup: (groupId: string) => Promise<void>;
   createCharacter: (characterData: Partial<Character>) => Promise<Character>;
+  deleteCharacter: (characterId: string) => Promise<void>;
+  createPredefinedCharacters: () => Promise<void>;
   addCharacterToGroup: (groupId: string, characterId: string) => Promise<void>;
   removeCharacterFromGroup: (groupId: string, characterId: string) => Promise<void>;
   startConversation: (groupId: string) => Promise<void>;
@@ -113,7 +116,9 @@ export const useStore = create<AppState>()(
       
       loadCharacters: async () => {
         try {
+          console.log('Loading characters...');
           const characters = await apiService.getCharacters();
+          console.log('Characters loaded:', characters);
           set({ characters });
         } catch (error) {
           console.error('Failed to load characters:', error);
@@ -140,6 +145,19 @@ export const useStore = create<AppState>()(
         }
       },
       
+      deleteGroup: async (groupId) => {
+        try {
+          await apiService.deleteGroup(groupId);
+          set((state) => ({ 
+            groups: state.groups.filter(g => g.id !== groupId),
+            activeGroup: state.activeGroup?.id === groupId ? null : state.activeGroup
+          }));
+        } catch (error) {
+          console.error('Failed to delete group:', error);
+          throw error;
+        }
+      },
+      
       createCharacter: async (characterData) => {
         try {
           const character = await apiService.createCharacter(characterData);
@@ -147,6 +165,28 @@ export const useStore = create<AppState>()(
           return character;
         } catch (error) {
           console.error('Failed to create character:', error);
+          throw error;
+        }
+      },
+      
+      deleteCharacter: async (characterId) => {
+        try {
+          await apiService.deleteCharacter(characterId);
+          set((state) => ({ 
+            characters: state.characters.filter(c => c.id !== characterId) 
+          }));
+        } catch (error) {
+          console.error('Failed to delete character:', error);
+          throw error;
+        }
+      },
+      
+      createPredefinedCharacters: async () => {
+        try {
+          await apiService.createPredefinedCharacters();
+          await get().loadCharacters(); // Refresh characters list
+        } catch (error) {
+          console.error('Failed to create predefined characters:', error);
           throw error;
         }
       },

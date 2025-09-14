@@ -1,47 +1,75 @@
 import { useEffect, useRef, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
 import { useStore } from '../store/useStore.ts';
 import { WebSocketMessage, Message, MessageType } from '../types/index.ts';
 import toast from 'react-hot-toast';
 
-const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws';
+// Try different WebSocket endpoints
+const WS_URLS = [
+  process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws',
+  'ws://localhost:8080',
+  'ws://localhost:8080/websocket',
+  'ws://localhost:8080/socket.io/?EIO=4&transport=websocket'
+];
+
+let currentUrlIndex = 0;
+const WS_URL = WS_URLS[currentUrlIndex];
 
 export const useWebSocket = () => {
   const [isConnected, setIsConnected] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const { addMessage, setConversationStatus, addTypingUser, removeTypingUser } = useStore();
+  const wsRef = useRef<WebSocket | null>(null);
+  const { addMessage, setConversationStatus, addTypingUser } = useStore();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
   const connect = () => {
-    if (socket?.connected) return;
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
 
-    const newSocket = io(WS_URL, {
-      transports: ['websocket'],
-      timeout: 20000,
-    });
+    const currentUrl = WS_URLS[currentUrlIndex];
+    console.log('Attempting to connect to WebSocket:', currentUrl);
+    const ws = new WebSocket(currentUrl);
+    wsRef.current = ws;
 
-    newSocket.on('connect', () => {
+    ws.onopen = () => {
       console.log('WebSocket connected');
       setIsConnected(true);
       toast.success('Connected to chat');
-    });
+    };
 
-    newSocket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+    ws.onclose = (event) => {
+      console.log('WebSocket disconnected:', event.code, event.reason);
       setIsConnected(false);
-      toast.error('Disconnected from chat');
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
-      setIsConnected(false);
-      toast.error('Connection failed');
-    });
-
-    newSocket.on('message', (data: WebSocketMessage) => {
-      console.log('Received message:', data);
       
-      if (data.type === 'message' && data.id && data.groupId && data.characterId && data.characterName && data.content) {
+      if (event.code === 403) {
+        console.log('403 error - trying next URL...');
+        currentUrlIndex = (currentUrlIndex + 1) % WS_URLS.length;
+        console.log('Trying URL:', WS_URLS[currentUrlIndex]);
+        toast.error(`WebSocket rejected (403) - Trying alternative endpoint...`);
+        
+        // Try next URL immediately
+        reconnectTimeoutRef.current = setTimeout(connect, 1000);
+      } else if (event.code === 1006) {
+        toast.error('WebSocket connection failed - Server may be down');
+        // Auto-reconnect after 5 seconds
+        reconnectTimeoutRef.current = setTimeout(connect, 5000);
+      } else {
+        toast.error('Disconnected from chat');
+        // Auto-reconnect after 5 seconds
+        reconnectTimeoutRef.current = setTimeout(connect, 5000);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      console.error('WebSocket readyState:', ws.readyState);
+      toast.error('WebSocket connection error');
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data: WebSocketMessage = JSON.parse(event.data);
+
+        switch (data.type) {
+          case 'message':
+            if (data.id && data.groupId && data.characterId && data.characterName && data.content) {
         const message: Message = {
           id: data.id,
           groupId: data.groupId,
@@ -52,110 +80,80 @@ export const useWebSocket = () => {
           timestamp: data.timestamp || new Date().toISOString(),
           isAiGenerated: data.isAiGenerated || false,
         };
-        
         addMessage(message);
       }
-    });
+            break;
 
-    newSocket.on('conversation_status', (data: WebSocketMessage) => {
-      console.log('Conversation status update:', data);
-      
-      if (data.type === 'conversation_status' && data.groupId !== undefined) {
+          case 'conversation_status':
+            if (data.groupId !== undefined) {
         setConversationStatus({
           isActive: data.isActive || false,
           groupId: data.isActive ? data.groupId : null,
         });
       }
-    });
+            break;
 
-    newSocket.on('typing', (data: WebSocketMessage) => {
-      console.log('Typing update:', data);
-      
-      if (data.type === 'typing' && data.users) {
+          case 'typing':
+            if (data.users) {
         data.users.forEach(user => {
-          if (user) {
-            addTypingUser(user);
-          }
-        });
-      }
-    });
+                if (user) addTypingUser(user);
+              });
+            }
+            break;
 
-    newSocket.on('welcome', (data: WebSocketMessage) => {
-      console.log('Welcome message:', data);
-      if (data.message) {
-        toast.success(data.message);
-      }
-    });
+          case 'welcome':
+            if (data.message) toast.success(data.message);
+            break;
 
-    newSocket.on('error', (data: WebSocketMessage) => {
-      console.error('WebSocket error:', data);
-      if (data.message) {
-        toast.error(data.message);
+          case 'error':
+            if (data.message) toast.error(data.message);
+            break;
+        }
+      } catch (err) {
+        console.error('Failed to parse WebSocket message:', err);
       }
-    });
-
-    setSocket(newSocket);
+    };
   };
 
   const disconnect = () => {
-    if (socket) {
-      socket.disconnect();
-      setSocket(null);
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
       setIsConnected(false);
     }
   };
 
-  const joinGroup = (groupId: string) => {
-    if (socket?.connected) {
-      socket.emit('join_group', { groupId });
+  const send = (data: any) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(data));
     }
   };
 
-  const leaveGroup = (groupId: string) => {
-    if (socket?.connected) {
-      socket.emit('leave_group', { groupId });
-    }
-  };
+  const joinGroup = (groupId: string) => send({ action: 'join_group', groupId });
+  const leaveGroup = (groupId: string) => send({ action: 'leave_group', groupId });
+  const sendTyping = (groupId: string, isTyping: boolean) => send({ action: 'typing', groupId, isTyping });
+  const ping = () => send({ action: 'ping' });
 
-  const sendTyping = (groupId: string, isTyping: boolean) => {
-    if (socket?.connected) {
-      socket.emit('typing', { groupId, isTyping });
-    }
-  };
-
-  const ping = () => {
-    if (socket?.connected) {
-      socket.emit('ping');
-    }
-  };
-
-  // Auto-reconnect logic
+  // Auto-connect on mount
   useEffect(() => {
-    if (!isConnected && !socket) {
       connect();
-    }
-
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      disconnect();
     };
-  }, [isConnected, socket]);
+  }, []);
 
-  // Ping to keep connection alive
+  // Keep connection alive
   useEffect(() => {
-    if (isConnected && socket) {
-      const pingInterval = setInterval(() => {
-        ping();
-      }, 30000); // Ping every 30 seconds
-
-      return () => clearInterval(pingInterval);
+    if (isConnected) {
+      const interval = setInterval(() => ping(), 30000);
+      return () => clearInterval(interval);
     }
-  }, [isConnected, socket]);
+  }, [isConnected]);
 
   return {
     isConnected,
-    socket,
+    ws: wsRef.current,
     connect,
     disconnect,
     joinGroup,
@@ -164,6 +162,3 @@ export const useWebSocket = () => {
     ping,
   };
 };
-
-
-

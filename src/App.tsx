@@ -34,7 +34,7 @@ function App() {
 
   return (
     <Router>
-      <div className="chat-container">
+      <div className="chat-container h-screen overflow-hidden">
         <Toaster
           position="top-right"
           toastOptions={{

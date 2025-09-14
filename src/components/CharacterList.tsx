@@ -85,10 +85,12 @@ const CharacterList: React.FC = () => {
     );
   }
 
+  console.log('CharacterList render - showCreateForm:', showCreateForm);
+  
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-chat-border">
+      <div className="p-4 border-b border-chat-border flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-chat-text">Characters</h2>
           <div className="flex space-x-2">
@@ -100,7 +102,10 @@ const CharacterList: React.FC = () => {
               <SparklesIcon className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setShowCreateForm(!showCreateForm)}
+              onClick={() => {
+                console.log('Create form button clicked, current state:', showCreateForm);
+                setShowCreateForm(!showCreateForm);
+              }}
               className="p-2 text-whatsapp-400 hover:bg-whatsapp-400/10 rounded-lg transition-colors duration-200"
               title="Create new character"
             >
@@ -126,64 +131,68 @@ const CharacterList: React.FC = () => {
 
         {/* Create Character Form */}
         {showCreateForm && (
-          <form onSubmit={handleCreateCharacter} className="space-y-3">
-            <input
-              type="text"
-              placeholder="Character name"
-              value={newCharacter.name}
-              onChange={(e) => setNewCharacter({ ...newCharacter, name: e.target.value })}
-              className="input-field w-full"
-              required
-            />
-            <textarea
-              placeholder="Personality traits (e.g., funny, sarcastic, wise)"
-              value={newCharacter.personalityTraits}
-              onChange={(e) => setNewCharacter({ ...newCharacter, personalityTraits: e.target.value })}
-              className="input-field w-full h-20 resize-none"
-            />
-            <textarea
-              placeholder="System prompt (how the character should behave)"
-              value={newCharacter.systemPrompt}
-              onChange={(e) => setNewCharacter({ ...newCharacter, systemPrompt: e.target.value })}
-              className="input-field w-full h-20 resize-none"
-            />
-            <input
-              type="text"
-              placeholder="Speaking style (e.g., casual, formal, uses slang)"
-              value={newCharacter.speakingStyle}
-              onChange={(e) => setNewCharacter({ ...newCharacter, speakingStyle: e.target.value })}
-              className="input-field w-full"
-            />
-            <textarea
-              placeholder="Background story"
-              value={newCharacter.background}
-              onChange={(e) => setNewCharacter({ ...newCharacter, background: e.target.value })}
-              className="input-field w-full h-16 resize-none"
-            />
-            <input
-              type="url"
-              placeholder="Avatar URL (optional)"
-              value={newCharacter.avatarUrl}
-              onChange={(e) => setNewCharacter({ ...newCharacter, avatarUrl: e.target.value })}
-              className="input-field w-full"
-            />
-            <div className="flex space-x-2">
-              <button
-                type="submit"
-                disabled={isCreating}
-                className="button-primary flex-1 flex items-center justify-center"
-              >
-                {isCreating ? <LoadingSpinner size="sm" /> : 'Create Character'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="button-secondary px-4"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+          <div className="mt-4 p-4 bg-chat-message border-2 border-whatsapp-400 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold text-chat-text mb-3">Create New Character</h3>
+            <p className="text-sm text-chat-textSecondary mb-3">Fill in the details below to create a new character</p>
+            <form onSubmit={handleCreateCharacter} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Character name"
+                value={newCharacter.name}
+                onChange={(e) => setNewCharacter({ ...newCharacter, name: e.target.value })}
+                className="input-field w-full"
+                required
+              />
+              <textarea
+                placeholder="Personality traits (e.g., funny, sarcastic, wise)"
+                value={newCharacter.personalityTraits}
+                onChange={(e) => setNewCharacter({ ...newCharacter, personalityTraits: e.target.value })}
+                className="input-field w-full h-20 resize-none"
+              />
+              <textarea
+                placeholder="System prompt (how the character should behave)"
+                value={newCharacter.systemPrompt}
+                onChange={(e) => setNewCharacter({ ...newCharacter, systemPrompt: e.target.value })}
+                className="input-field w-full h-20 resize-none"
+              />
+              <input
+                type="text"
+                placeholder="Speaking style (e.g., casual, formal, uses slang)"
+                value={newCharacter.speakingStyle}
+                onChange={(e) => setNewCharacter({ ...newCharacter, speakingStyle: e.target.value })}
+                className="input-field w-full"
+              />
+              <textarea
+                placeholder="Background story"
+                value={newCharacter.background}
+                onChange={(e) => setNewCharacter({ ...newCharacter, background: e.target.value })}
+                className="input-field w-full h-16 resize-none"
+              />
+              <input
+                type="url"
+                placeholder="Avatar URL (optional)"
+                value={newCharacter.avatarUrl}
+                onChange={(e) => setNewCharacter({ ...newCharacter, avatarUrl: e.target.value })}
+                className="input-field w-full"
+              />
+              <div className="flex space-x-2">
+                <button
+                  type="submit"
+                  disabled={isCreating || !newCharacter.name.trim()}
+                  className="button-primary flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreating ? <LoadingSpinner size="sm" /> : 'Create Character'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  className="button-secondary px-4"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         )}
       </div>
 
@@ -201,7 +210,7 @@ const CharacterList: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="p-2 space-y-2">
+          <div className="p-4 space-y-2">
             {characters.map((character) => (
               <CharacterCard
                 key={character.id}

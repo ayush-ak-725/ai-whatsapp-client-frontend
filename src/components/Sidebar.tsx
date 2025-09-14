@@ -40,15 +40,15 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <div className="sidebar">
+    <div className="sidebar flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-chat-border">
+      <div className="p-4 border-b border-chat-border flex-shrink-0">
         <h1 className="text-xl font-bold text-gradient">Bakchod AI</h1>
         <p className="text-sm text-chat-textSecondary">WhatsApp-style AI Chat</p>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-chat-border">
+      <div className="flex border-b border-chat-border flex-shrink-0">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -76,7 +76,7 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-chat-border">
+      <div className="p-4 border-t border-chat-border flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
