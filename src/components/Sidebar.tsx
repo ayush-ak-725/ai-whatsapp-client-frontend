@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/useStore.ts';
 import { 
   ChatBubbleLeftRightIcon, 
   UserGroupIcon, 
@@ -7,9 +7,9 @@ import {
   PlusIcon,
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
-import GroupList from './GroupList';
-import CharacterList from './CharacterList';
-import LoadingSpinner from './LoadingSpinner';
+import GroupList from './GroupList.tsx';
+import CharacterList from './CharacterList.tsx';
+import LoadingSpinner from './LoadingSpinner.tsx';
 
 const Sidebar: React.FC = () => {
   const { 

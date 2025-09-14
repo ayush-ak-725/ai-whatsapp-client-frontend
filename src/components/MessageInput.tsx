@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useWebSocket } from '../hooks/useWebSocket.ts';
 
 interface MessageInputProps {
   groupId: string;

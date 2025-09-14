@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useStore } from '../store/useStore';
-import { WebSocketMessage, Message, MessageType } from '../types';
+import { useStore } from '../store/useStore.ts';
+import { WebSocketMessage, Message, MessageType } from '../types/index.ts';
 import toast from 'react-hot-toast';
 
 const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws';

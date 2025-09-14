@@ -1,5 +1,5 @@
 import React from 'react';
-import { Message, MessageType } from '../types';
+import { Message, MessageType } from '../types/index.ts';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 

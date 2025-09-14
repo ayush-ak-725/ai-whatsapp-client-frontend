@@ -1,12 +1,12 @@
 import React from 'react';
-import { Group } from '../types';
+import { Group } from '../types/index.ts';
 import { 
   PlayIcon, 
   StopIcon, 
   UserGroupIcon,
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline';
-import { useStore } from '../store/useStore';
+import { useStore } from '../store/useStore.ts';
 import toast from 'react-hot-toast';
 
 interface ChatHeaderProps {

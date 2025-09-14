@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Group, Character, Message, ConversationStatus } from '../types';
-import { apiService } from '../services/apiService';
+import { Group, Character, Message, ConversationStatus } from '../types/index.ts';
+import { apiService } from '../services/apiService.ts';
 
 interface AppState {
   // Loading states

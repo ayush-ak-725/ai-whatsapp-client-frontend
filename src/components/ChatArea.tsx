@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { useStore } from '../store/useStore';
-import { useWebSocket } from '../hooks/useWebSocket';
-import MessageList from './MessageList';
-import MessageInput from './MessageInput';
-import ChatHeader from './ChatHeader';
-import TypingIndicator from './TypingIndicator';
-import LoadingSpinner from './LoadingSpinner';
+import { useStore } from '../store/useStore.ts';
+import { useWebSocket } from '../hooks/useWebSocket.ts';
+import MessageList from './MessageList.tsx';
+import MessageInput from './MessageInput.tsx';
+import ChatHeader from './ChatHeader.tsx';
+import TypingIndicator from './TypingIndicator.tsx';
+import LoadingSpinner from './LoadingSpinner.tsx';
 
 const ChatArea: React.FC = () => {
   const { 

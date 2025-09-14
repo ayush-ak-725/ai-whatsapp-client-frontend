@@ -1,5 +1,5 @@
 import React from 'react';
-import GroupList from './GroupList';
+import GroupList from './GroupList.tsx';
 
 const GroupManagement: React.FC = () => {
   return (

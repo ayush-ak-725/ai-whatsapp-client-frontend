@@ -1,17 +1,17 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useWebSocket } from './hooks/useWebSocket';
-import { useStore } from './store/useStore';
-import Sidebar from './components/Sidebar';
-import ChatArea from './components/ChatArea';
-import GroupManagement from './components/GroupManagement';
-import CharacterManagement from './components/CharacterManagement';
-import LoadingSpinner from './components/LoadingSpinner';
+import { useWebSocket } from './hooks/useWebSocket.ts';
+import { useStore } from './store/useStore.ts';
+import Sidebar from './components/Sidebar.tsx';
+import ChatArea from './components/ChatArea.tsx';
+import GroupManagement from './components/GroupManagement.tsx';
+import CharacterManagement from './components/CharacterManagement.tsx';
+import LoadingSpinner from './components/LoadingSpinner.tsx';
 import './index.css';
 
 function App() {
-  const { isConnected, connect, disconnect } = useWebSocket();
+  const { isConnected, connect } = useWebSocket();
   const { isLoading, initializeApp } = useStore();
 
   React.useEffect(() => {
