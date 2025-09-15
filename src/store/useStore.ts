@@ -116,9 +116,7 @@ export const useStore = create<AppState>()(
       
       loadCharacters: async () => {
         try {
-          console.log('Loading characters...');
           const characters = await apiService.getCharacters();
-          console.log('Characters loaded:', characters);
           set({ characters });
         } catch (error) {
           console.error('Failed to load characters:', error);
@@ -127,8 +125,12 @@ export const useStore = create<AppState>()(
       
       loadMessages: async (groupId) => {
         try {
+          console.log('Loading messages for group:', groupId);
           const messages = await apiService.getGroupMessages(groupId);
+          console.log('Loaded messages:', messages);
+          console.log('Messages count:', messages.length);
           set({ messages });
+          console.log('Messages set in state');
         } catch (error) {
           console.error('Failed to load messages:', error);
         }

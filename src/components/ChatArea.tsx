@@ -16,6 +16,10 @@ const ChatArea: React.FC = () => {
     isLoading 
   } = useStore();
   
+  console.log('ChatArea - activeGroup:', activeGroup);
+  console.log('ChatArea - messages:', messages);
+  console.log('ChatArea - messages count:', messages.length);
+  
   const { joinGroup, leaveGroup } = useWebSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -111,6 +115,8 @@ const ChatArea: React.FC = () => {
 };
 
 export default ChatArea;
+
+
 
 
 

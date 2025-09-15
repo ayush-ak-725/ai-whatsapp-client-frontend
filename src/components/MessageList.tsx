@@ -8,6 +8,9 @@ interface MessageListProps {
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+  console.log('MessageList received messages:', messages);
+  console.log('MessageList messages count:', messages.length);
+  
   if (messages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -135,6 +138,8 @@ const getMessageTypeIcon = (messageType: MessageType): string => {
 };
 
 export default MessageList;
+
+
 
 
 
