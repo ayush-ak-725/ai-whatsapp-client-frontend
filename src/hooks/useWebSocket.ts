@@ -5,7 +5,8 @@ import toast from 'react-hot-toast';
 
 // Try different WebSocket endpoints
 const WS_URLS = [
-  process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws',
+  process.env.REACT_APP_WS_URL || 'wss://ai-whatsapp-client-backend-1.onrender.com/ws', 
+  'ws://localhost:8080/ws',
   'ws://localhost:8080',
   'ws://localhost:8080/websocket',
   'ws://localhost:8080/socket.io/?EIO=4&transport=websocket'
