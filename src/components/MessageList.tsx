@@ -11,13 +11,17 @@ interface MessageListProps {
 const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   console.log('MessageList received messages:', messages);
   console.log('MessageList messages count:', messages.length);
-  
+
   if (messages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
         <div className="w-16 h-16 bg-chat-message rounded-full flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-chat-textSecondary" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+          <svg
+            className="w-8 h-8 text-chat-textSecondary"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
           </svg>
         </div>
         <h3 className="text-lg font-medium text-chat-text mb-2">No messages yet</h3>
@@ -34,7 +38,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
         <MessageBubble
           key={message.id}
           message={message}
-          isConsecutive={index > 0 && messages[index - 1].characterId === message.characterId}
+          isConsecutive={
+            index > 0 && messages[index - 1].characterId === message.characterId
+          }
         />
       ))}
     </div>
@@ -46,14 +52,14 @@ interface MessageBubbleProps {
   isConsecutive: boolean;
 }
 
-// ✅ Utility: always treat backend timestamp as UTC, then convert to local timezone
+// ✅ Utility: normalize timestamp → UTC → Local timezone
 const parseTimestamp = (timestamp: string | number | Date) => {
   if (!timestamp) return new Date();
   let ts = timestamp.toString();
 
-  // If backend sent "2025-09-17T05:00:00" (no timezone info)
+  // Handle backend sending "YYYY-MM-DDTHH:mm:ss" (missing timezone)
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(ts)) {
-    ts += 'Z';
+    ts += 'Z'; // mark as UTC
   }
 
   const utcDate = new Date(ts);
@@ -61,8 +67,11 @@ const parseTimestamp = (timestamp: string | number | Date) => {
   return utcToZonedTime(utcDate, localTz);
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isConsecutive }) => {
-  const isOwnMessage = !message.isAiGenerated; // In this case, we only have AI messages
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  isConsecutive,
+}) => {
+  const isOwnMessage = !message.isAiGenerated;
   const showAvatar = !isConsecutive;
 
   return (
@@ -70,9 +79,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isConsecutive })
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} ${showAvatar ? 'mb-2' : 'mb-1'}`}
+      className={`flex ${
+        isOwnMessage ? 'justify-end' : 'justify-start'
+      } ${showAvatar ? 'mb-2' : 'mb-1'}`}
     >
-      <div className={`flex max-w-xs lg:max-w-md ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div
+        className={`flex max-w-xs lg:max-w-md ${
+          isOwnMessage ? 'flex-row-reverse' : 'flex-row'
+        }`}
+      >
         {/* Avatar */}
         {showAvatar && !isOwnMessage && (
           <div className="flex-shrink-0 mr-3">
@@ -97,10 +112,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isConsecutive })
               isOwnMessage ? 'message-own' : 'message-other'
             } ${isConsecutive ? 'ml-12' : ''}`}
           >
-            <div className="whitespace-pre-wrap break-words">
-              {message.content}
-            </div>
-            
+            <div className="whitespace-pre-wrap break-words">{message.content}</div>
+
             {/* Message Type Indicator */}
             {message.messageType !== MessageType.TEXT && (
               <div className="mt-1 text-xs opacity-70">
@@ -110,18 +123,24 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isConsecutive })
           </div>
 
           {/* Timestamp and Status */}
-          <div className={`flex items-center space-x-1 mt-1 px-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+          <div
+            className={`flex items-center space-x-1 mt-1 px-1 ${
+              isOwnMessage ? 'flex-row-reverse' : 'flex-row'
+            }`}
+          >
             <span className="text-xs text-chat-textSecondary">
-              {formatDistanceToNow(parseTimestamp(message.timestamp), { addSuffix: true })}
+              {formatDistanceToNow(parseTimestamp(message.timestamp), {
+                addSuffix: true,
+              })}
             </span>
-            
+
             {message.isAiGenerated && (
               <div className="flex items-center space-x-1">
                 <div className="w-1 h-1 bg-whatsapp-400 rounded-full"></div>
                 <span className="text-xs text-whatsapp-400">AI</span>
               </div>
             )}
-            
+
             {message.responseTimeMs && (
               <span className="text-xs text-chat-textSecondary">
                 ({message.responseTimeMs}ms)
