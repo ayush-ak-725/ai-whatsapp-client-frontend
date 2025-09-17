@@ -45,6 +45,17 @@ interface MessageBubbleProps {
   isConsecutive: boolean;
 }
 
+// Utility: parse timestamp safely as UTC if backend didn’t send timezone
+const parseTimestamp = (timestamp: string | number | Date) => {
+  if (!timestamp) return new Date();
+  let ts = timestamp.toString();
+  // if backend sent e.g. "2025-09-17T05:00:00" without timezone
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(ts)) {
+    ts += 'Z';
+  }
+  return new Date(ts);
+};
+
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isConsecutive }) => {
   const isOwnMessage = !message.isAiGenerated; // In this case, we only have AI messages
   const showAvatar = !isConsecutive;
@@ -96,7 +107,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isConsecutive })
           {/* Timestamp and Status */}
           <div className={`flex items-center space-x-1 mt-1 px-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
             <span className="text-xs text-chat-textSecondary">
-              {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
+              {formatDistanceToNow(parseTimestamp(message.timestamp), { addSuffix: true })}
             </span>
             
             {message.isAiGenerated && (
@@ -138,8 +149,3 @@ const getMessageTypeIcon = (messageType: MessageType): string => {
 };
 
 export default MessageList;
-
-
-
-
-
