@@ -22,6 +22,7 @@ const ChatArea: React.FC = () => {
   
   const { joinGroup, leaveGroup } = useWebSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Load messages when active group changes
   useEffect(() => {
@@ -39,9 +40,17 @@ const ChatArea: React.FC = () => {
     };
   }, [activeGroup, loadMessages, joinGroup, leaveGroup]);
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom only if user is near bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   if (isLoading) {
@@ -93,7 +102,10 @@ const ChatArea: React.FC = () => {
       <ChatHeader group={activeGroup} isConversationActive={isConversationActive} />
       
       <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto scrollbar-thin">
+        <div
+          ref={messagesContainerRef}
+          className="flex-1 overflow-y-auto scrollbar-thin"
+        >
           <MessageList messages={messages} />
           <TypingIndicator />
           <div ref={messagesEndRef} />
@@ -115,8 +127,3 @@ const ChatArea: React.FC = () => {
 };
 
 export default ChatArea;
-
-
-
-
-

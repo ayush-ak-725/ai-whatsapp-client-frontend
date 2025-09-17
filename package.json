@@ -22,7 +22,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
+<<<<<<< HEAD
     "start:3000": "PORT=3001 HOST=0.0.0.0 react-scripts start",
+=======
+    "start:3000": "PORT=3000 HOST=0.0.0.0 react-scripts start",
+>>>>>>> e78c4b6 (fix: chat area scroll down)
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
