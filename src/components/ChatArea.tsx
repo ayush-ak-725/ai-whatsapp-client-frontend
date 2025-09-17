@@ -19,6 +19,7 @@ const ChatArea: React.FC = () => {
   console.log('ChatArea - activeGroup:', activeGroup);
   console.log('ChatArea - messages:', messages);
   console.log('ChatArea - messages count:', messages.length);
+  console.log('ChatArea - conversationStatus:', conversationStatus);
   
   const { joinGroup, leaveGroup } = useWebSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -115,7 +116,11 @@ const ChatArea: React.FC = () => {
           <div className="p-4 border-t border-chat-border">
             <div className="flex items-center justify-center space-x-2 text-sm text-chat-textSecondary">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span>AI characters are actively chatting...</span>
+              <span>
+                {conversationStatus.nextTurn
+                  ? `${conversationStatus.nextTurn} is typing...`
+                  : 'AI characters are actively chatting...'}
+              </span>
             </div>
           </div>
         )}
