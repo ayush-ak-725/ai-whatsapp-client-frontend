@@ -1,7 +1,6 @@
 import React from 'react';
 import { Message, MessageType } from '../types/index.ts';
 import { formatDistanceToNow } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
 import { motion } from 'framer-motion';
 
 interface MessageListProps {
@@ -52,19 +51,10 @@ interface MessageBubbleProps {
   isConsecutive: boolean;
 }
 
-// ✅ Utility: normalize timestamp → UTC → Local timezone
+// ✅ Utility: backend sends ISO UTC timestamps, just parse directly
 const parseTimestamp = (timestamp: string | number | Date) => {
   if (!timestamp) return new Date();
-  let ts = timestamp.toString();
-
-  // Handle backend sending "YYYY-MM-DDTHH:mm:ss" (missing timezone)
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(ts)) {
-    ts += 'Z'; // mark as UTC
-  }
-
-  const utcDate = new Date(ts);
-  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return utcToZonedTime(utcDate, localTz);
+  return new Date(timestamp); // JS handles "Z" correctly
 };
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
