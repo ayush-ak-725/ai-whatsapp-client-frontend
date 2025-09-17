@@ -1,6 +1,7 @@
 import React from 'react';
 import { Message, MessageType } from '../types/index.ts';
 import { formatDistanceToNow } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 import { motion } from 'framer-motion';
 
 interface MessageListProps {
@@ -45,15 +46,19 @@ interface MessageBubbleProps {
   isConsecutive: boolean;
 }
 
-// Utility: parse timestamp safely as UTC if backend didn’t send timezone
+// ✅ Utility: always treat backend timestamp as UTC, then convert to local timezone
 const parseTimestamp = (timestamp: string | number | Date) => {
   if (!timestamp) return new Date();
   let ts = timestamp.toString();
-  // if backend sent e.g. "2025-09-17T05:00:00" without timezone
+
+  // If backend sent "2025-09-17T05:00:00" (no timezone info)
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(ts)) {
     ts += 'Z';
   }
-  return new Date(ts);
+
+  const utcDate = new Date(ts);
+  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return utcToZonedTime(utcDate, localTz);
 };
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isConsecutive }) => {
