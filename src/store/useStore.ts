@@ -65,7 +65,7 @@ export const useStore = create<AppState>()(
       activeGroup: null,
       sidebarOpen: true,
       selectedTab: 'chat',
-      conversationStatus: { isActive: false, groupId: null },
+      conversationStatus: { isActive: false, groupId: null, nextTurn: null },
       typingUsers: [],
       
       // Basic setters
@@ -216,7 +216,7 @@ export const useStore = create<AppState>()(
       startConversation: async (groupId) => {
         try {
           await apiService.startConversation(groupId);
-          set({ conversationStatus: { isActive: true, groupId } });
+          set({ conversationStatus: { isActive: true, groupId, nextTurn: 'AI character' } });
         } catch (error) {
           console.error('Failed to start conversation:', error);
           throw error;
@@ -226,7 +226,7 @@ export const useStore = create<AppState>()(
       stopConversation: async (groupId) => {
         try {
           await apiService.stopConversation(groupId);
-          set({ conversationStatus: { isActive: false, groupId: null } });
+          set({ conversationStatus: { isActive: false, groupId: null, nextTurn: null } });
         } catch (error) {
           console.error('Failed to stop conversation:', error);
           throw error;

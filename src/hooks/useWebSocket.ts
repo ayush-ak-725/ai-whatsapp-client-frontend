@@ -9,16 +9,15 @@ const WS_URLS = [
   'ws://localhost:8080/ws',
   'ws://localhost:8080',
   'ws://localhost:8080/websocket',
-  'ws://localhost:8080/socket.io/?EIO=4&transport=websocket'
+  'ws://localhost:8080/socket.io/?EIO=4&transport=websocket',
 ];
 
 let currentUrlIndex = 0;
-const WS_URL = WS_URLS[currentUrlIndex];
 
 export const useWebSocket = () => {
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const { addMessage, setConversationStatus, addTypingUser } = useStore();
+  const { addMessage, addTypingUser, setConversationStatus } = useStore();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
   const connect = () => {
@@ -38,22 +37,19 @@ export const useWebSocket = () => {
     ws.onclose = (event) => {
       console.log('WebSocket disconnected:', event.code, event.reason);
       setIsConnected(false);
-      
+
       if (event.code === 403) {
         console.log('403 error - trying next URL...');
         currentUrlIndex = (currentUrlIndex + 1) % WS_URLS.length;
         console.log('Trying URL:', WS_URLS[currentUrlIndex]);
         toast.error(`WebSocket rejected (403) - Trying alternative endpoint...`);
-        
-        // Try next URL immediately
+
         reconnectTimeoutRef.current = setTimeout(connect, 1000);
       } else if (event.code === 1006) {
         toast.error('WebSocket connection failed - Server may be down');
-        // Auto-reconnect after 5 seconds
         reconnectTimeoutRef.current = setTimeout(connect, 5000);
       } else {
         toast.error('Disconnected from chat');
-        // Auto-reconnect after 5 seconds
         reconnectTimeoutRef.current = setTimeout(connect, 5000);
       }
     };
@@ -67,36 +63,56 @@ export const useWebSocket = () => {
     ws.onmessage = (event) => {
       try {
         const data: WebSocketMessage = JSON.parse(event.data);
+        console.log("WS event received:", data); 
 
         switch (data.type) {
           case 'message':
-            if (data.id && data.groupId && data.characterId && data.characterName && data.content) {
-        const message: Message = {
-          id: data.id,
-          groupId: data.groupId,
-          characterId: data.characterId,
-          characterName: data.characterName,
-          content: data.content,
-          messageType: (data.messageType as MessageType) || MessageType.TEXT,
-          timestamp: data.timestamp || new Date().toISOString(),
-          isAiGenerated: data.isAiGenerated || false,
-        };
-        addMessage(message);
-      }
+            if (
+              data.id &&
+              data.groupId &&
+              data.characterId &&
+              data.characterName &&
+              data.content
+            ) {
+              const message: Message = {
+                id: data.id,
+                groupId: data.groupId,
+                characterId: data.characterId,
+                characterName: data.characterName,
+                content: data.content,
+                messageType:
+                  (data.messageType as MessageType) || MessageType.TEXT,
+                timestamp: data.timestamp || new Date().toISOString(),
+                isAiGenerated: data.isAiGenerated || false,
+                nextTurn: data.nextTurn,
+              };
+              addMessage(message);
+
+              // ✅ force update conversationStatus.nextTurn
+              useStore.setState((state) => ({
+                conversationStatus: {
+                  ...state.conversationStatus,
+                  nextTurn: data.nextTurn || null,
+                },
+              }));
+
+              console.log('Updated nextTurn in conversationStatus:', data.nextTurn);
+            }
             break;
 
           case 'conversation_status':
             if (data.groupId !== undefined) {
-        setConversationStatus({
-          isActive: data.isActive || false,
-          groupId: data.isActive ? data.groupId : null,
-        });
-      }
+              setConversationStatus({
+                isActive: data.isActive || false,
+                groupId: data.isActive ? data.groupId : null,
+                nextTurn: data.nextTurn || null,
+              });
+            }
             break;
 
           case 'typing':
             if (data.users) {
-        data.users.forEach(user => {
+              data.users.forEach((user) => {
                 if (user) addTypingUser(user);
               });
             }
@@ -130,14 +146,17 @@ export const useWebSocket = () => {
     }
   };
 
-  const joinGroup = (groupId: string) => send({ action: 'join_group', groupId });
-  const leaveGroup = (groupId: string) => send({ action: 'leave_group', groupId });
-  const sendTyping = (groupId: string, isTyping: boolean) => send({ action: 'typing', groupId, isTyping });
+  const joinGroup = (groupId: string) =>
+    send({ action: 'join_group', groupId });
+  const leaveGroup = (groupId: string) =>
+    send({ action: 'leave_group', groupId });
+  const sendTyping = (groupId: string, isTyping: boolean) =>
+    send({ action: 'typing', groupId, isTyping });
   const ping = () => send({ action: 'ping' });
 
   // Auto-connect on mount
   useEffect(() => {
-      connect();
+    connect();
     return () => {
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
       disconnect();

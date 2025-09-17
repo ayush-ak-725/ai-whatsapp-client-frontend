@@ -31,6 +31,7 @@ export interface Message {
   timestamp: string;
   isAiGenerated: boolean;
   responseTimeMs?: number;
+  nextTurn?: string;
 }
 
 export enum MessageType {
@@ -46,6 +47,7 @@ export enum MessageType {
 export interface ConversationStatus {
   isActive: boolean;
   groupId: string | null;
+  nextTurn?: string;
 }
 
 export interface WebSocketMessage {
@@ -61,6 +63,7 @@ export interface WebSocketMessage {
   isActive?: boolean;
   message?: string;
   users?: string[];
+  nextTurn?: string;
 }
 
 export interface CreateGroupRequest {

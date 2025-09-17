@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { useStore } from '../store/useStore.ts';
 import { useWebSocket } from '../hooks/useWebSocket.ts';
 import MessageList from './MessageList.tsx';
@@ -15,11 +15,6 @@ const ChatArea: React.FC = () => {
     conversationStatus,
     isLoading 
   } = useStore();
-  
-  console.log('ChatArea - activeGroup:', activeGroup);
-  console.log('ChatArea - messages:', messages);
-  console.log('ChatArea - messages count:', messages.length);
-  console.log('ChatArea - conversationStatus:', conversationStatus);
   
   const { joinGroup, leaveGroup } = useWebSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -52,6 +47,13 @@ const ChatArea: React.FC = () => {
     if (isNearBottom) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
+  }, [messages]);
+
+  // ✅ Derive latest nextTurn from messages
+  const latestNextTurn = useMemo(() => {
+    if (messages.length === 0) return null;
+    const lastMessageWithNextTurn = [...messages].reverse().find(m => m.nextTurn);
+    return lastMessageWithNextTurn?.nextTurn || null;
   }, [messages]);
 
   if (isLoading) {
@@ -112,14 +114,12 @@ const ChatArea: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
         
-        {isConversationActive && (
+        {isConversationActive && latestNextTurn && (
           <div className="p-4 border-t border-chat-border">
             <div className="flex items-center justify-center space-x-2 text-sm text-chat-textSecondary">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               <span>
-                {conversationStatus.nextTurn
-                  ? `${conversationStatus.nextTurn} is typing...`
-                  : 'AI characters are actively chatting...'}
+                {`${latestNextTurn} is typing...`}
               </span>
             </div>
           </div>
